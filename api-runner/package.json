@@ -1,0 +1,7 @@
+{
+  "name": "api-runner",
+  "private": true,
+  "scripts": {
+    "dev": "cd ../api && go run ./cmd/server"
+  }
+}

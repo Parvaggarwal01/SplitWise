@@ -1,0 +1,14 @@
+{
+  "name": "splitwise-assignment",
+  "private": true,
+  "scripts": {
+    "web:dev": "npm run dev --workspace web",
+    "web:build": "npm run build --workspace web",
+    "api:test": "cd api && go test ./...",
+    "api:dev": "cd api && go run ./cmd/server"
+  },
+  "workspaces": [
+    "web",
+    "api-runner"
+  ]
+}
