@@ -157,6 +157,31 @@ h2 {
   padding: 0 4px;
 }
 
+.rateInput {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #d8ddd4;
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 10px;
+}
+
+.rateInput span {
+  color: #5d686f;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rateInput input {
+  border: 0;
+  color: #1d2428;
+  font-weight: 800;
+  width: 74px;
+}
+
 .upload,
 .clearButton {
   align-items: center;

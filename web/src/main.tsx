@@ -15,6 +15,7 @@ function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [error, setError] = useState('');
+  const [usdRate, setUsdRate] = useState(83.5);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const refresh = async () => {
@@ -73,6 +74,16 @@ function App() {
               <LogOut size={16} />
             </button>
           </div>
+          <label className="rateInput">
+            <span>USD rate</span>
+            <input
+              min="0.01"
+              step="0.01"
+              type="number"
+              value={usdRate}
+              onChange={(event) => setUsdRate(Number(event.target.value))}
+            />
+          </label>
           <label className="upload">
             <FileUp size={18} />
             Import CSV
@@ -85,7 +96,7 @@ function App() {
                 if (!file) return;
                 setError('');
                 try {
-                  await api.importFile(file);
+                  await api.importFile(file, usdRate);
                   await refresh();
                 } catch (err) {
                   setError(err instanceof Error ? err.message : 'Import failed');
@@ -273,8 +284,10 @@ function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: strin
         onSubmit={async (event) => {
           event.preventDefault();
           setError('');
+          const submitter = event.nativeEvent instanceof SubmitEvent ? event.nativeEvent.submitter : null;
+          const action = submitter instanceof HTMLButtonElement ? submitter.dataset.authAction : mode;
           try {
-            const user = mode === 'login'
+            const user = action === 'login'
               ? await api.login(email, password)
               : await api.register(name, email, password);
             window.localStorage.setItem('flat-ledger-user', JSON.stringify(user));
@@ -287,10 +300,24 @@ function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: strin
         <p className="eyebrow">Flat Ledger</p>
         <h1>{mode === 'login' ? 'Sign in' : 'Create account'}</h1>
         <div className="authTabs">
-          <button className={mode === 'login' ? 'active' : ''} type="button" onClick={() => setMode('login')}>
+          <button
+            className={mode === 'login' ? 'active' : ''}
+            type="button"
+            onClick={() => {
+              setError('');
+              setMode('login');
+            }}
+          >
             Login
           </button>
-          <button className={mode === 'register' ? 'active' : ''} type="button" onClick={() => setMode('register')}>
+          <button
+            className={mode === 'register' ? 'active' : ''}
+            type="button"
+            onClick={() => {
+              setError('');
+              setMode('register');
+            }}
+          >
             Register
           </button>
         </div>
@@ -309,7 +336,7 @@ function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: strin
           <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" />
         </label>
         {error && <div className="error">{error}</div>}
-        <button type="submit">{mode === 'login' ? 'Continue' : 'Create account'}</button>
+        <button data-auth-action={mode} type="submit">{mode === 'login' ? 'Continue' : 'Create account'}</button>
       </form>
     </main>
   );

@@ -3,7 +3,9 @@ package httpapi
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"splitwise-assignment/api/internal/auth"
@@ -142,13 +144,29 @@ func (s *Server) importCSV(w http.ResponseWriter, r *http.Request) {
 		reader = file
 	}
 
-	report, err := importer.Parse(reader)
+	options := importer.Options{USDRatePaise: parseUSDRatePaise(r)}
+	report, err := importer.ParseWithOptions(reader, options)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	s.store.ReplaceImport(report)
 	writeJSON(w, http.StatusCreated, report)
+}
+
+func parseUSDRatePaise(r *http.Request) int64 {
+	value := strings.TrimSpace(r.FormValue("usdRate"))
+	if value == "" {
+		value = strings.TrimSpace(r.URL.Query().Get("usdRate"))
+	}
+	if value == "" {
+		return 0
+	}
+	rate, err := strconv.ParseFloat(value, 64)
+	if err != nil || rate <= 0 {
+		return 0
+	}
+	return int64(math.Round(rate * 100))
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {

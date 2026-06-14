@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	baseCurrency = "INR"
-	usdRatePaise = int64(8350)
+	baseCurrency        = "INR"
+	defaultUSDRatePaise = int64(8350)
 )
 
 var canonicalNames = map[string]string{
@@ -47,7 +47,18 @@ type row struct {
 	notes        string
 }
 
+type Options struct {
+	USDRatePaise int64
+}
+
 func Parse(r io.Reader) (domain.ImportReport, error) {
+	return ParseWithOptions(r, Options{USDRatePaise: defaultUSDRatePaise})
+}
+
+func ParseWithOptions(r io.Reader, options Options) (domain.ImportReport, error) {
+	if options.USDRatePaise <= 0 {
+		options.USDRatePaise = defaultUSDRatePaise
+	}
 	reader := csv.NewReader(r)
 	reader.TrimLeadingSpace = false
 	records, err := reader.ReadAll()
@@ -69,7 +80,7 @@ func Parse(r io.Reader) (domain.ImportReport, error) {
 	for i, record := range records[1:] {
 		csvRow := toRow(i+2, record)
 		rows = append(rows, csvRow)
-		expense, settlement, anomalies := parseRow(csvRow)
+		expense, settlement, anomalies := parseRow(csvRow, options)
 		report.Anomalies = append(report.Anomalies, anomalies...)
 
 		if settlement != nil {
@@ -121,7 +132,7 @@ func toRow(number int, record []string) row {
 	}
 }
 
-func parseRow(r row) (*domain.Expense, *domain.Settlement, []domain.ImportAnomaly) {
+func parseRow(r row, options Options) (*domain.Expense, *domain.Settlement, []domain.ImportAnomaly) {
 	var anomalies []domain.ImportAnomaly
 	date, dateAnomalies, ok := parseDate(r.number, r.dateRaw, r.notes)
 	anomalies = append(anomalies, dateAnomalies...)
@@ -168,7 +179,7 @@ func parseRow(r row) (*domain.Expense, *domain.Settlement, []domain.ImportAnomal
 			Date:        date,
 			From:        paidBy,
 			To:          to,
-			AmountPaise: convertToBase(amountPaise, currency),
+			AmountPaise: convertToBase(amountPaise, currency, options),
 			SourceRow:   r.number,
 			Notes:       r.notes,
 		}, append(anomalies, anomaly(r.number, "settlement_as_expense", "warning", "A payment/settlement was logged in the expense sheet.", "Record as settlement, not as shared expense.", "recorded_as_settlement"))
@@ -182,9 +193,9 @@ func parseRow(r row) (*domain.Expense, *domain.Settlement, []domain.ImportAnomal
 		anomalies = append(anomalies, anomaly(r.number, "negative_amount", "warning", "Negative amount treated as refund.", "Import as a negative expense and allocate it across participants.", "imported_as_refund"))
 	}
 
-	baseAmount := convertToBase(amountPaise, currency)
+	baseAmount := convertToBase(amountPaise, currency, options)
 	if currency == "USD" {
-		anomalies = append(anomalies, anomaly(r.number, "foreign_currency", "warning", "USD amount requires conversion to INR.", "Use fixed documented rate of 1 USD = INR 83.50 for repeatable assignment calculations.", "converted_to_inr"))
+		anomalies = append(anomalies, anomaly(r.number, "foreign_currency", "warning", "USD amount requires conversion to INR.", fmt.Sprintf("Use selected import rate of 1 USD = INR %.2f.", float64(options.USDRatePaise)/100), "converted_to_inr"))
 	}
 
 	participants, participantAnomalies := parseParticipants(r.number, r.splitWith)
@@ -435,9 +446,9 @@ func looksLikeNonSharedTransfer(r row) bool {
 	return strings.Contains(text, "deposit")
 }
 
-func convertToBase(amountPaise int64, currency string) int64 {
+func convertToBase(amountPaise int64, currency string, options Options) int64 {
 	if strings.ToUpper(currency) == "USD" {
-		return int64(math.Round(float64(amountPaise) * float64(usdRatePaise) / 100.0))
+		return int64(math.Round(float64(amountPaise) * float64(options.USDRatePaise) / 100.0))
 	}
 	return amountPaise
 }

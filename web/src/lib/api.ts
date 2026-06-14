@@ -13,7 +13,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) throw new Error(`Login failed: ${await response.text()}`);
     return response.json() as Promise<{ name: string; email: string; token: string }>;
   },
   register: async (name: string, email: string, password: string) => {
@@ -22,16 +22,17 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
     });
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) throw new Error(`Register failed: ${await response.text()}`);
     return response.json() as Promise<{ name: string; email: string; token: string }>;
   },
   latestImport: () => json<ImportReport>('/api/imports/latest'),
   balances: () => json<BalanceSummary>('/api/groups/default/balances'),
   expenses: () => json<Expense[]>('/api/groups/default/expenses'),
   members: () => json<Member[]>('/api/groups/default/members'),
-  importFile: async (file: File) => {
+  importFile: async (file: File, usdRate: number) => {
     const form = new FormData();
     form.append('file', file);
+    form.append('usdRate', String(usdRate));
     const response = await fetch('/api/imports', { method: 'POST', body: form });
     if (!response.ok) throw new Error(await response.text());
     return response.json() as Promise<ImportReport>;

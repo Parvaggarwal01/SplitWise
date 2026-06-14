@@ -39,15 +39,15 @@ Options considered:
 
 Chosen: flag deposits as non-shared transfers and skip them pending review. Sam's deposit is a one-off transfer to Aisha, not a household expense that Meera or Kabir should settle through.
 
-## Fixed exchange rate for assignment repeatability
+## User-selected exchange rate
 
 Options considered:
 
 - Live FX API
 - User-entered import-time FX rate
-- Fixed documented rate
+- Fixed documented default with user override
 
-Chosen: fixed documented rate of `1 USD = INR 83.50`. A live rate would make reviewer calculations change over time.
+Chosen: default to `1 USD = INR 83.50`, but allow the reviewer to override the rate during import. A live rate would make reviewer calculations change over time, while a configurable rate supports Priya's concern and live evaluation changes.
 
 ## Duplicate policy requires approval
 

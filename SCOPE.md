@@ -6,7 +6,7 @@ Implemented:
 
 - CSV import with anomaly reporting
 - Equal, unequal, share, and percentage split parsing
-- USD to INR conversion with documented fixed assignment rate
+- USD to INR conversion with user-selected import rate
 - Membership timeline for Aisha, Rohan, Priya, Meera, Dev, Sam, and Kabir
 - Group balance summary and simplified settlement suggestions
 - Settlement/payment detection
@@ -22,7 +22,7 @@ Not completed yet:
 
 ## Import Policies
 
-Default currency is INR unless CSV explicitly says USD. USD is converted using `1 USD = INR 83.50` so calculations are repeatable in review.
+Default currency is INR unless CSV explicitly says USD. USD is converted using the import form's selected USD rate, defaulting to `1 USD = INR 83.50`.
 
 Dates are parsed as `DD-MM-YYYY`. `Mar-14` is parsed as `14 March 2026` because the whole sheet is in 2026. Ambiguous `04-05-2026` is parsed as `4 May 2026` but flagged for approval.
 
@@ -45,7 +45,7 @@ Blocking anomalies skip the row. Warning anomalies import with documented normal
 | 14 | Missing payer | Blocking, skip expense |
 | 15 | Settlement logged as expense | Record as settlement |
 | 16 | Percentages total 110%, not 100% | Normalize weights and flag for approval |
-| 20, 21, 25 | USD expenses | Convert to INR at fixed rate |
+| 20, 21, 25 | USD expenses | Convert to INR at selected import rate |
 | 24 | Participant `Dev's friend Kabir` not a normal member | Normalize to visitor `Kabir` |
 | 26 and 27 | Possible duplicate Thalassa dinner with different amount/payer | Import first, skip later pending approval |
 | 28 | Negative USD amount | Treat as refund and import as negative expense |
