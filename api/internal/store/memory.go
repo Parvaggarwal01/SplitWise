@@ -16,8 +16,11 @@ type Memory struct {
 func NewMemory() *Memory {
 	return &Memory{
 		report: domain.ImportReport{
-			ID:         "empty",
-			ImportedAt: time.Now().UTC(),
+			ID:          "empty",
+			ImportedAt:  time.Now().UTC(),
+			Expenses:    []domain.Expense{},
+			Settlements: []domain.Settlement{},
+			Anomalies:   []domain.ImportAnomaly{},
 			Members: []domain.Member{
 				{ID: "aisha", Name: "Aisha", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
 				{ID: "rohan", Name: "Rohan", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
@@ -30,13 +33,14 @@ func NewMemory() *Memory {
 func (m *Memory) ReplaceImport(report domain.ImportReport) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	report = normalizeReport(report)
 	m.report = report
 }
 
 func (m *Memory) Report() domain.ImportReport {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return m.report
+	return normalizeReport(m.report)
 }
 
 func (m *Memory) Expenses() []domain.Expense {
@@ -55,4 +59,20 @@ func (m *Memory) Balances() domain.BalanceSummary {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return balance.Summarize(m.report.Expenses, m.report.Settlements)
+}
+
+func normalizeReport(report domain.ImportReport) domain.ImportReport {
+	if report.Expenses == nil {
+		report.Expenses = []domain.Expense{}
+	}
+	if report.Settlements == nil {
+		report.Settlements = []domain.Settlement{}
+	}
+	if report.Anomalies == nil {
+		report.Anomalies = []domain.ImportAnomaly{}
+	}
+	if report.Members == nil {
+		report.Members = []domain.Member{}
+	}
+	return report
 }

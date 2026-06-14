@@ -37,6 +37,11 @@ function App() {
     return Array.from(counts.entries());
   }, [report]);
 
+  const reportExpenses = report?.expenses ?? [];
+  const reportAnomalies = report?.anomalies ?? [];
+  const balanceDebts = balances?.debts ?? [];
+  const balanceLines = balances?.lines ?? [];
+
   return (
     <main className="shell">
       <header className="topbar">
@@ -69,15 +74,15 @@ function App() {
 
       <section className="metrics">
         <Metric icon={<Database />} label="Rows read" value={String(report?.rowsRead ?? 0)} />
-        <Metric icon={<CheckCircle2 />} label="Imported expenses" value={String(report?.expenses.length ?? 0)} />
-        <Metric icon={<AlertTriangle />} label="Anomalies" value={String(report?.anomalies.length ?? 0)} />
+        <Metric icon={<CheckCircle2 />} label="Imported expenses" value={String(reportExpenses.length)} />
+        <Metric icon={<AlertTriangle />} label="Anomalies" value={String(reportAnomalies.length)} />
         <Metric icon={<UsersRound />} label="People" value={String(members.length)} />
       </section>
 
       <section className="grid">
         <Panel title="Who Pays Whom">
           <div className="debtList">
-            {balances?.debts.map((debt) => (
+            {balanceDebts.map((debt) => (
               <div className="debt" key={`${debt.from}-${debt.to}-${debt.amountPaise}`}>
                 <span>{debt.from}</span>
                 <ArrowRight size={16} />
@@ -85,7 +90,7 @@ function App() {
                 <strong>{money(debt.amountPaise)}</strong>
               </div>
             ))}
-            {balances?.debts.length === 0 && <p className="muted">No balances yet.</p>}
+            {balanceDebts.length === 0 && <p className="muted">No balances yet.</p>}
           </div>
         </Panel>
 
@@ -100,7 +105,7 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {balances?.lines.map((line) => (
+              {balanceLines.map((line) => (
                 <tr key={line.memberName}>
                   <td>{line.memberName}</td>
                   <td>{money(line.paidPaise)}</td>
@@ -121,7 +126,7 @@ function App() {
             ))}
           </div>
           <div className="anomalies">
-            {report?.anomalies.map((anomaly, index) => (
+            {reportAnomalies.map((anomaly, index) => (
               <article className="anomaly" key={`${anomaly.rowNumber}-${anomaly.code}-${index}`}>
                 <div>
                   <strong>Row {anomaly.rowNumber}: {anomaly.code}</strong>
