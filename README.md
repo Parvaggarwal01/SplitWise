@@ -80,8 +80,10 @@ The current API uses an in-memory store for local review while the schema is rea
 Upload the assignment CSV from the UI or POST it directly:
 
 ```bash
-curl -F "file=@sample-data/expenses_export.csv" http://localhost:8080/api/imports
+curl -F "file=@/path/to/expenses_export.csv" http://localhost:8080/api/imports
 ```
+
+For local auto-seeding during API startup, place your own CSV at `sample-data/expenses_export.csv`. CSV files in `sample-data/` are ignored by Git.
 
 The importer returns an import report containing:
 
