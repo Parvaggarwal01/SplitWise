@@ -17,6 +17,33 @@ npm run api:test
 npm run web:build
 ```
 
+## Environment Variables
+
+Copy examples before local setup:
+
+```bash
+cp .env.example .env
+cp web/.env.example web/.env.local
+```
+
+Backend variables:
+
+- `DATABASE_URL`: Neon Postgres connection string.
+- `ADDR`: API bind address, defaults to `:8080`.
+
+Frontend variables:
+
+- `VITE_API_TARGET`: API URL used by the Vite dev proxy, for example `http://localhost:8080`.
+
+The Go API currently reads OS environment variables. If you keep values in `.env`, export them before starting the API:
+
+```bash
+set -a
+source .env
+set +a
+npm run api:dev
+```
+
 Run the API:
 
 ```bash
