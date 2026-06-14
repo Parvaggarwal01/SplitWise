@@ -17,6 +17,11 @@ export const api = {
     const response = await fetch('/api/imports', { method: 'POST', body: form });
     if (!response.ok) throw new Error(await response.text());
     return response.json() as Promise<ImportReport>;
+  },
+  clearImport: async () => {
+    const response = await fetch('/api/imports/latest', { method: 'DELETE' });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json() as Promise<ImportReport>;
   }
 };
 

@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AlertTriangle, ArrowRight, CheckCircle2, Database, FileUp, UsersRound } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Database, FileUp, Trash2, UsersRound } from 'lucide-react';
 import { api, money, shortDate } from './lib/api';
 import type { BalanceSummary, Expense, ImportReport, Member } from './lib/types';
 import './styles/app.css';
@@ -11,6 +11,7 @@ function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const refresh = async () => {
     const [latest, summary, expenseRows, memberRows] = await Promise.all([
@@ -50,25 +51,45 @@ function App() {
           <p className="eyebrow">Shared expenses</p>
           <h1>Flat Ledger</h1>
         </div>
-        <label className="upload">
-          <FileUp size={18} />
-          Import CSV
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            onChange={async (event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
+        <div className="actions">
+          <label className="upload">
+            <FileUp size={18} />
+            Import CSV
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              onChange={async (event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                setError('');
+                try {
+                  await api.importFile(file);
+                  await refresh();
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Import failed');
+                }
+              }}
+            />
+          </label>
+          <button
+            className="clearButton"
+            type="button"
+            onClick={async () => {
               setError('');
               try {
-                await api.importFile(file);
+                await api.clearImport();
+                if (fileInputRef.current) fileInputRef.current.value = '';
                 await refresh();
               } catch (err) {
-                setError(err instanceof Error ? err.message : 'Import failed');
+                setError(err instanceof Error ? err.message : 'Clear failed');
               }
             }}
-          />
-        </label>
+          >
+            <Trash2 size={18} />
+            Clear import
+          </button>
+        </div>
       </header>
 
       {error && <div className="error">{error}</div>}

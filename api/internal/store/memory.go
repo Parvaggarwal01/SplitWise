@@ -14,20 +14,7 @@ type Memory struct {
 }
 
 func NewMemory() *Memory {
-	return &Memory{
-		report: domain.ImportReport{
-			ID:          "empty",
-			ImportedAt:  time.Now().UTC(),
-			Expenses:    []domain.Expense{},
-			Settlements: []domain.Settlement{},
-			Anomalies:   []domain.ImportAnomaly{},
-			Members: []domain.Member{
-				{ID: "aisha", Name: "Aisha", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-				{ID: "rohan", Name: "Rohan", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-				{ID: "priya", Name: "Priya", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-			},
-		},
-	}
+	return &Memory{report: emptyReport()}
 }
 
 func (m *Memory) ReplaceImport(report domain.ImportReport) {
@@ -35,6 +22,13 @@ func (m *Memory) ReplaceImport(report domain.ImportReport) {
 	defer m.mu.Unlock()
 	report = normalizeReport(report)
 	m.report = report
+}
+
+func (m *Memory) ClearImport() domain.ImportReport {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.report = emptyReport()
+	return m.report
 }
 
 func (m *Memory) Report() domain.ImportReport {
@@ -85,4 +79,19 @@ func normalizeReport(report domain.ImportReport) domain.ImportReport {
 		report.Members = []domain.Member{}
 	}
 	return report
+}
+
+func emptyReport() domain.ImportReport {
+	return domain.ImportReport{
+		ID:          "empty",
+		ImportedAt:  time.Now().UTC(),
+		Expenses:    []domain.Expense{},
+		Settlements: []domain.Settlement{},
+		Anomalies:   []domain.ImportAnomaly{},
+		Members: []domain.Member{
+			{ID: "aisha", Name: "Aisha", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
+			{ID: "rohan", Name: "Rohan", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
+			{ID: "priya", Name: "Priya", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
+		},
+	}
 }

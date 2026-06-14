@@ -51,17 +51,40 @@ h2 {
   margin: 0 0 14px;
 }
 
-.upload {
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.upload,
+.clearButton {
   align-items: center;
-  background: #0f6b5f;
+  border: 0;
   border-radius: 8px;
-  color: #fff;
   cursor: pointer;
   display: inline-flex;
   font-weight: 700;
   gap: 8px;
   min-height: 42px;
   padding: 0 14px;
+}
+
+.upload {
+  background: #0f6b5f;
+  color: #fff;
+}
+
+.clearButton {
+  background: #fff;
+  border: 1px solid #d8ddd4;
+  color: #39454d;
+}
+
+.clearButton:hover {
+  border-color: #b9362c;
+  color: #b9362c;
 }
 
 .upload input {
