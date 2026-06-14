@@ -62,12 +62,13 @@ func Parse(r io.Reader) (domain.ImportReport, error) {
 		ID:         makeID("import", time.Now().Format(time.RFC3339Nano)),
 		ImportedAt: time.Now().UTC(),
 		RowsRead:   len(records) - 1,
-		Members:    defaultMembers(),
 	}
 
 	seen := map[string]domain.Expense{}
+	rows := make([]row, 0, len(records)-1)
 	for i, record := range records[1:] {
 		csvRow := toRow(i+2, record)
+		rows = append(rows, csvRow)
 		expense, settlement, anomalies := parseRow(csvRow)
 		report.Anomalies = append(report.Anomalies, anomalies...)
 
@@ -98,6 +99,7 @@ func Parse(r io.Reader) (domain.ImportReport, error) {
 	sort.SliceStable(report.Expenses, func(i, j int) bool {
 		return report.Expenses[i].Date.Before(report.Expenses[j].Date)
 	})
+	report.Members = deriveMembers(rows)
 	return report, nil
 }
 
@@ -460,17 +462,84 @@ func shareNames(shares []domain.ExpenseShare) []string {
 	return names
 }
 
-func defaultMembers() []domain.Member {
-	marchEnd := time.Date(2026, 3, 31, 23, 59, 59, 0, time.UTC)
-	return []domain.Member{
-		{ID: "aisha", Name: "Aisha", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-		{ID: "rohan", Name: "Rohan", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-		{ID: "priya", Name: "Priya", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-		{ID: "meera", Name: "Meera", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC), LeftAt: &marchEnd},
-		{ID: "dev", Name: "Dev", JoinedAt: time.Date(2026, 2, 8, 0, 0, 0, 0, time.UTC), IsVisitor: true},
-		{ID: "sam", Name: "Sam", JoinedAt: time.Date(2026, 4, 10, 0, 0, 0, 0, time.UTC)},
-		{ID: "kabir", Name: "Kabir", JoinedAt: time.Date(2026, 3, 11, 0, 0, 0, 0, time.UTC), IsVisitor: true},
+func deriveMembers(rows []row) []domain.Member {
+	type memberDraft struct {
+		name      string
+		joinedAt  time.Time
+		leftAt    *time.Time
+		isVisitor bool
 	}
+
+	members := map[string]*memberDraft{}
+	ensure := func(name string, date time.Time, text string) {
+		if name == "" || date.IsZero() {
+			return
+		}
+		draft, ok := members[name]
+		if !ok {
+			members[name] = &memberDraft{name: name, joinedAt: date, isVisitor: looksLikeVisitor(text)}
+			return
+		}
+		if date.Before(draft.joinedAt) {
+			draft.joinedAt = date
+		}
+		if looksLikeVisitor(text) {
+			draft.isVisitor = true
+		}
+	}
+
+	for _, r := range rows {
+		date, _, ok := parseDate(r.number, r.dateRaw, r.notes)
+		if !ok {
+			continue
+		}
+		text := r.description + " " + r.notes
+		if paidBy, _, ok := normalizeName(r.number, r.paidBy, "paid_by"); ok {
+			ensure(paidBy, date, text)
+		}
+		participants, _ := parseParticipants(r.number, r.splitWith)
+		for _, participant := range participants {
+			ensure(participant, date, text)
+		}
+
+		lowerText := strings.ToLower(text)
+		if strings.Contains(lowerText, "moving out") {
+			for _, participant := range participants {
+				if strings.Contains(lowerText, strings.ToLower(participant)) {
+					leftAt := date
+					members[participant].leftAt = &leftAt
+				}
+			}
+		}
+	}
+
+	result := make([]domain.Member, 0, len(members))
+	for _, draft := range members {
+		result = append(result, domain.Member{
+			ID:        memberID(draft.name),
+			Name:      draft.name,
+			JoinedAt:  draft.joinedAt,
+			LeftAt:    draft.leftAt,
+			IsVisitor: draft.isVisitor,
+		})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].JoinedAt.Equal(result[j].JoinedAt) {
+			return result[i].Name < result[j].Name
+		}
+		return result[i].JoinedAt.Before(result[j].JoinedAt)
+	})
+	return result
+}
+
+func looksLikeVisitor(text string) bool {
+	lower := strings.ToLower(text)
+	return strings.Contains(lower, "visiting") || strings.Contains(lower, "visitor") || strings.Contains(lower, "joined for the day")
+}
+
+func memberID(name string) string {
+	id := regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(strings.ToLower(name), "-")
+	return strings.Trim(id, "-")
 }
 
 func anomaly(rowNumber int, code string, severity string, message string, policy string, action string) domain.ImportAnomaly {

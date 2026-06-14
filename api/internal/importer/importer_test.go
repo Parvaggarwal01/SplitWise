@@ -49,6 +49,31 @@ func assertAnomaly(t *testing.T, anomalies []domain.ImportAnomaly, code string) 
 	t.Fatalf("missing anomaly code %s", code)
 }
 
+func TestParseDerivesMembersFromUploadedCSV(t *testing.T) {
+	report, err := Parse(strings.NewReader(`date,description,paid_by,amount,currency,split_type,split_with,split_details,notes
+01-06-2026,Rent,Zoya,30000,INR,equal,Zoya;Nikhil,,
+03-06-2026,Snacks,Nikhil,600,INR,equal,Zoya;Nikhil;Tara,,Tara visiting
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	names := map[string]bool{}
+	for _, member := range report.Members {
+		names[member.Name] = true
+	}
+	for _, name := range []string{"Zoya", "Nikhil", "Tara"} {
+		if !names[name] {
+			t.Fatalf("expected derived member %s, got %+v", name, report.Members)
+		}
+	}
+	for _, oldName := range []string{"Aisha", "Rohan", "Priya", "Dev"} {
+		if names[oldName] {
+			t.Fatalf("did not expect hardcoded member %s in %+v", oldName, report.Members)
+		}
+	}
+}
+
 const assignmentFixture = `date,description,paid_by,amount,currency,split_type,split_with,split_details,notes
 08-02-2026,Dinner at Marina Bites,Dev,3200,INR,equal,Aisha;Rohan;Priya;Dev,,
 08-02-2026,dinner - marina bites,Dev,3200,INR,equal,Aisha;Rohan;Priya;Dev,,
