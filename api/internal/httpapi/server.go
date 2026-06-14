@@ -38,6 +38,7 @@ func (s *Server) routes() {
 	})
 	s.mux.HandleFunc("POST /api/imports", s.importCSV)
 	s.mux.HandleFunc("POST /api/login", s.login)
+	s.mux.HandleFunc("POST /api/register", s.register)
 	s.mux.HandleFunc("GET /api/imports/latest", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, s.store.Report())
 	})
@@ -72,6 +73,29 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{
 		"name":  "Demo Reviewer",
 		"email": payload.Email,
+		"token": "demo-session",
+	})
+}
+
+func (s *Server) register(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "invalid register payload", http.StatusBadRequest)
+		return
+	}
+	name := strings.TrimSpace(payload.Name)
+	email := strings.TrimSpace(payload.Email)
+	if name == "" || email == "" || strings.TrimSpace(payload.Password) == "" {
+		http.Error(w, "name, email and password are required", http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]string{
+		"name":  name,
+		"email": email,
 		"token": "demo-session",
 	})
 }

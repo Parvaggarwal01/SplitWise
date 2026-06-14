@@ -260,6 +260,8 @@ function App() {
 }
 
 function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: string; token: string }) => void }) {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [name, setName] = useState('Aisha');
   const [email, setEmail] = useState('aisha@example.com');
   const [password, setPassword] = useState('demo123');
   const [error, setError] = useState('');
@@ -272,16 +274,32 @@ function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: strin
           event.preventDefault();
           setError('');
           try {
-            const user = await api.login(email, password);
+            const user = mode === 'login'
+              ? await api.login(email, password)
+              : await api.register(name, email, password);
             window.localStorage.setItem('flat-ledger-user', JSON.stringify(user));
             onLogin(user);
           } catch (err) {
-            setError(err instanceof Error ? err.message : 'Login failed');
+            setError(err instanceof Error ? err.message : 'Authentication failed');
           }
         }}
       >
         <p className="eyebrow">Flat Ledger</p>
-        <h1>Sign in</h1>
+        <h1>{mode === 'login' ? 'Sign in' : 'Create account'}</h1>
+        <div className="authTabs">
+          <button className={mode === 'login' ? 'active' : ''} type="button" onClick={() => setMode('login')}>
+            Login
+          </button>
+          <button className={mode === 'register' ? 'active' : ''} type="button" onClick={() => setMode('register')}>
+            Register
+          </button>
+        </div>
+        {mode === 'register' && (
+          <label>
+            Name
+            <input value={name} onChange={(event) => setName(event.target.value)} type="text" />
+          </label>
+        )}
         <label>
           Email
           <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
@@ -291,7 +309,7 @@ function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: strin
           <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" />
         </label>
         {error && <div className="error">{error}</div>}
-        <button type="submit">Continue</button>
+        <button type="submit">{mode === 'login' ? 'Continue' : 'Create account'}</button>
       </form>
     </main>
   );

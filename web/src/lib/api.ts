@@ -16,6 +16,15 @@ export const api = {
     if (!response.ok) throw new Error(await response.text());
     return response.json() as Promise<{ name: string; email: string; token: string }>;
   },
+  register: async (name: string, email: string, password: string) => {
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json() as Promise<{ name: string; email: string; token: string }>;
+  },
   latestImport: () => json<ImportReport>('/api/imports/latest'),
   balances: () => json<BalanceSummary>('/api/groups/default/balances'),
   expenses: () => json<Expense[]>('/api/groups/default/expenses'),

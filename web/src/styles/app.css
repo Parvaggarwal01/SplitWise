@@ -43,6 +43,28 @@ input {
   margin-bottom: 8px;
 }
 
+.authTabs {
+  background: #f2f5f7;
+  border: 1px solid #d9e0e5;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+}
+
+.authTabs button {
+  background: transparent;
+  color: #5d686f;
+  min-height: 36px;
+}
+
+.authTabs button.active {
+  background: #fff;
+  color: #0f6b5f;
+  box-shadow: 0 1px 2px rgb(24 33 38 / 0.08);
+}
+
 .loginPanel label {
   color: #39454d;
   display: grid;
