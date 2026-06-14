@@ -48,10 +48,10 @@ export type ImportReport = {
   id: string;
   importedAt: string;
   rowsRead: number;
-  expenses: Expense[];
-  settlements: Settlement[];
-  anomalies: ImportAnomaly[];
-  members: Member[];
+  expenses: Expense[] | null;
+  settlements: Settlement[] | null;
+  anomalies: ImportAnomaly[] | null;
+  members: Member[] | null;
 };
 
 export type BalanceLine = {
@@ -70,6 +70,6 @@ export type Debt = {
 
 export type BalanceSummary = {
   currency: string;
-  lines: BalanceLine[];
-  debts: Debt[];
+  lines: BalanceLine[] | null;
+  debts: Debt[] | null;
 };

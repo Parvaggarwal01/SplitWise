@@ -21,8 +21,8 @@ function App() {
     ]);
     setReport(latest);
     setBalances(summary);
-    setExpenses(expenseRows);
-    setMembers(memberRows);
+    setExpenses(expenseRows ?? []);
+    setMembers(memberRows ?? []);
   };
 
   useEffect(() => {
@@ -41,6 +41,7 @@ function App() {
   const reportAnomalies = report?.anomalies ?? [];
   const balanceDebts = balances?.debts ?? [];
   const balanceLines = balances?.lines ?? [];
+  const expenseRows = expenses ?? [];
 
   return (
     <main className="shell">
@@ -165,7 +166,7 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {expenses.map((expense) => (
+            {expenseRows.map((expense) => (
               <tr key={expense.id}>
                 <td>{expense.sourceRow}</td>
                 <td>{shortDate(expense.date)}</td>

@@ -46,19 +46,29 @@ func (m *Memory) Report() domain.ImportReport {
 func (m *Memory) Expenses() []domain.Expense {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return append([]domain.Expense(nil), m.report.Expenses...)
+	report := normalizeReport(m.report)
+	return append([]domain.Expense{}, report.Expenses...)
 }
 
 func (m *Memory) Members() []domain.Member {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return append([]domain.Member(nil), m.report.Members...)
+	report := normalizeReport(m.report)
+	return append([]domain.Member{}, report.Members...)
 }
 
 func (m *Memory) Balances() domain.BalanceSummary {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return balance.Summarize(m.report.Expenses, m.report.Settlements)
+	report := normalizeReport(m.report)
+	summary := balance.Summarize(report.Expenses, report.Settlements)
+	if summary.Lines == nil {
+		summary.Lines = []domain.BalanceLine{}
+	}
+	if summary.Debts == nil {
+		summary.Debts = []domain.Debt{}
+	}
+	return summary
 }
 
 func normalizeReport(report domain.ImportReport) domain.ImportReport {
