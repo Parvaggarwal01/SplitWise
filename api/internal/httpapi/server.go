@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -36,12 +37,14 @@ func (s *Server) routes() {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 	s.mux.HandleFunc("POST /api/imports", s.importCSV)
+	s.mux.HandleFunc("POST /api/login", s.login)
 	s.mux.HandleFunc("GET /api/imports/latest", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, s.store.Report())
 	})
 	s.mux.HandleFunc("DELETE /api/imports/latest", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, s.store.ClearImport())
 	})
+	s.mux.HandleFunc("PATCH /api/imports/latest/anomalies", s.reviewAnomaly)
 	s.mux.HandleFunc("GET /api/groups/default/members", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, s.store.Members())
 	})
@@ -51,6 +54,44 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/groups/default/balances", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, s.store.Balances())
 	})
+}
+
+func (s *Server) login(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "invalid login payload", http.StatusBadRequest)
+		return
+	}
+	if strings.TrimSpace(payload.Email) == "" || strings.TrimSpace(payload.Password) == "" {
+		http.Error(w, "email and password are required", http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{
+		"name":  "Demo Reviewer",
+		"email": payload.Email,
+		"token": "demo-session",
+	})
+}
+
+func (s *Server) reviewAnomaly(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		RowNumber int    `json:"rowNumber"`
+		Code      string `json:"code"`
+		Decision  string `json:"decision"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "invalid review payload", http.StatusBadRequest)
+		return
+	}
+	report, err := s.store.ReviewAnomaly(payload.RowNumber, payload.Code, payload.Decision)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("review failed: %s", err), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, report)
 }
 
 func (s *Server) importCSV(w http.ResponseWriter, r *http.Request) {

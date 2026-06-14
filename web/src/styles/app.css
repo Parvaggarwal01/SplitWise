@@ -18,6 +18,55 @@ input {
   font: inherit;
 }
 
+.loginShell {
+  align-items: center;
+  display: grid;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.loginPanel {
+  background: #fff;
+  border: 1px solid #d8ddd4;
+  border-radius: 8px;
+  box-shadow: 0 18px 48px rgb(24 33 38 / 0.08);
+  display: grid;
+  gap: 14px;
+  margin: 0 auto;
+  max-width: 420px;
+  padding: 28px;
+  width: 100%;
+}
+
+.loginPanel h1 {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+}
+
+.loginPanel label {
+  color: #39454d;
+  display: grid;
+  font-weight: 700;
+  gap: 6px;
+}
+
+.loginPanel input {
+  border: 1px solid #cfd6d1;
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.loginPanel button {
+  background: #0f6b5f;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 44px;
+}
+
 .shell {
   width: min(1180px, calc(100vw - 32px));
   margin: 0 auto;
@@ -52,10 +101,38 @@ h2 {
 }
 
 .actions {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
+}
+
+.userBadge {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #d8ddd4;
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 8px 0 12px;
+}
+
+.userBadge span {
+  color: #39454d;
+  font-weight: 700;
+}
+
+.userBadge button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #667178;
+  cursor: pointer;
+  display: inline-flex;
+  min-height: 30px;
+  padding: 0 4px;
 }
 
 .upload,
@@ -238,7 +315,14 @@ th {
   margin: 6px 0 0;
 }
 
-.anomaly span {
+.reviewColumn {
+  align-items: flex-end;
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
+.reviewColumn > span {
   align-self: start;
   background: #fff6d7;
   border-radius: 999px;
@@ -246,6 +330,31 @@ th {
   font-size: 0.76rem;
   padding: 5px 8px;
   white-space: nowrap;
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.reviewActions button {
+  background: #fff;
+  border: 1px solid #cfd6d1;
+  border-radius: 8px;
+  color: #39454d;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+.reviewActions button:first-child {
+  background: #0f6b5f;
+  border-color: #0f6b5f;
+  color: #fff;
 }
 
 .muted {
@@ -286,6 +395,11 @@ th {
   .anomaly,
   .member {
     grid-template-columns: 1fr;
+  }
+
+  .reviewColumn {
+    align-items: start;
+    justify-items: start;
   }
 
   table {

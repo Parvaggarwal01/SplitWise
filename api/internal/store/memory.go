@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -29,6 +30,35 @@ func (m *Memory) ClearImport() domain.ImportReport {
 	defer m.mu.Unlock()
 	m.report = emptyReport()
 	return m.report
+}
+
+func (m *Memory) ReviewAnomaly(rowNumber int, code string, decision string) (domain.ImportReport, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	action := ""
+	switch decision {
+	case "approve":
+		action = "approved"
+	case "keep_skipped":
+		action = "kept_skipped"
+	default:
+		return domain.ImportReport{}, fmt.Errorf("unsupported decision %q", decision)
+	}
+
+	found := false
+	for i := range m.report.Anomalies {
+		if m.report.Anomalies[i].RowNumber == rowNumber && m.report.Anomalies[i].Code == code {
+			m.report.Anomalies[i].Action = action
+			m.report.Anomalies[i].Severity = "reviewed"
+			found = true
+		}
+	}
+	if !found {
+		return domain.ImportReport{}, fmt.Errorf("anomaly not found")
+	}
+	m.report = normalizeReport(m.report)
+	return m.report, nil
 }
 
 func (m *Memory) Report() domain.ImportReport {

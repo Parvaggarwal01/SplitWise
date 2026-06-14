@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AlertTriangle, ArrowRight, CheckCircle2, Database, FileUp, Trash2, UsersRound } from 'lucide-react';
-import { api, money, shortDate } from './lib/api';
+import { AlertTriangle, ArrowRight, CheckCircle2, Database, FileUp, LogOut, Trash2, UsersRound } from 'lucide-react';
+import { api, labelize, money, shortDate } from './lib/api';
 import type { BalanceSummary, Expense, ImportReport, Member } from './lib/types';
 import './styles/app.css';
 
 function App() {
+  const [user, setUser] = useState<{ name: string; email: string; token: string } | null>(() => {
+    const stored = window.localStorage.getItem('flat-ledger-user');
+    return stored ? JSON.parse(stored) : null;
+  });
   const [report, setReport] = useState<ImportReport | null>(null);
   const [balances, setBalances] = useState<BalanceSummary | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -44,6 +48,10 @@ function App() {
   const balanceLines = balances?.lines ?? [];
   const expenseRows = expenses ?? [];
 
+  if (!user) {
+    return <LoginScreen onLogin={setUser} />;
+  }
+
   return (
     <main className="shell">
       <header className="topbar">
@@ -52,6 +60,19 @@ function App() {
           <h1>Flat Ledger</h1>
         </div>
         <div className="actions">
+          <div className="userBadge">
+            <span>{user.name}</span>
+            <button
+              type="button"
+              title="Sign out"
+              onClick={() => {
+                window.localStorage.removeItem('flat-ledger-user');
+                setUser(null);
+              }}
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
           <label className="upload">
             <FileUp size={18} />
             Import CSV
@@ -144,18 +165,52 @@ function App() {
         <Panel title="Import Report">
           <div className="chips">
             {anomalyCounts.map(([severity, count]) => (
-              <span className="chip" key={severity}>{severity}: {count}</span>
+              <span className="chip" key={severity}>{labelize(severity)}: {count}</span>
             ))}
           </div>
           <div className="anomalies">
             {reportAnomalies.map((anomaly, index) => (
               <article className="anomaly" key={`${anomaly.rowNumber}-${anomaly.code}-${index}`}>
                 <div>
-                  <strong>Row {anomaly.rowNumber}: {anomaly.code}</strong>
+                  <strong>Row {anomaly.rowNumber}: {labelize(anomaly.code)}</strong>
                   <p>{anomaly.message}</p>
                   <p className="muted">{anomaly.policy}</p>
                 </div>
-                <span>{anomaly.action}</span>
+                <div className="reviewColumn">
+                  <span>{labelize(anomaly.action)}</span>
+                  {anomaly.severity === 'approval_required' && (
+                    <div className="reviewActions">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setError('');
+                          try {
+                            await api.reviewAnomaly(anomaly.rowNumber, anomaly.code, 'approve');
+                            await refresh();
+                          } catch (err) {
+                            setError(err instanceof Error ? err.message : 'Approval failed');
+                          }
+                        }}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setError('');
+                          try {
+                            await api.reviewAnomaly(anomaly.rowNumber, anomaly.code, 'keep_skipped');
+                            await refresh();
+                          } catch (err) {
+                            setError(err instanceof Error ? err.message : 'Review failed');
+                          }
+                        }}
+                      >
+                        Keep skipped
+                      </button>
+                    </div>
+                  )}
+                </div>
               </article>
             ))}
           </div>
@@ -200,6 +255,44 @@ function App() {
           </tbody>
         </table>
       </Panel>
+    </main>
+  );
+}
+
+function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: string; token: string }) => void }) {
+  const [email, setEmail] = useState('aisha@example.com');
+  const [password, setPassword] = useState('demo123');
+  const [error, setError] = useState('');
+
+  return (
+    <main className="loginShell">
+      <form
+        className="loginPanel"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          setError('');
+          try {
+            const user = await api.login(email, password);
+            window.localStorage.setItem('flat-ledger-user', JSON.stringify(user));
+            onLogin(user);
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Login failed');
+          }
+        }}
+      >
+        <p className="eyebrow">Flat Ledger</p>
+        <h1>Sign in</h1>
+        <label>
+          Email
+          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
+        </label>
+        <label>
+          Password
+          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" />
+        </label>
+        {error && <div className="error">{error}</div>}
+        <button type="submit">Continue</button>
+      </form>
     </main>
   );
 }
