@@ -150,6 +150,11 @@ func parseRow(r row) (*domain.Expense, *domain.Settlement, []domain.ImportAnomal
 		return nil, nil, anomalies
 	}
 
+	if looksLikeNonSharedTransfer(r) {
+		anomalies = append(anomalies, anomaly(r.number, "non_shared_transfer", "approval_required", "Deposit or one-off transfer found in the expense sheet.", "Do not include deposits in shared expense balances unless a reviewer explicitly converts it to a settlement.", "skipped_pending_review"))
+		return nil, nil, anomalies
+	}
+
 	if looksLikeSettlement(r) {
 		to, toAnomalies, toOK := normalizeName(r.number, r.splitWith, "settlement_to")
 		anomalies = append(anomalies, toAnomalies...)
@@ -417,10 +422,15 @@ func normalizeSplitType(value string) string {
 func looksLikeSettlement(r row) bool {
 	text := strings.ToLower(r.description + " " + r.notes)
 	description := strings.ToLower(r.description)
-	if strings.Contains(description, "deposit") || strings.Contains(description, "paid") && strings.Contains(description, "back") {
+	if strings.Contains(description, "paid") && strings.Contains(description, "back") {
 		return true
 	}
 	return normalizeSplitType(r.splitType) == "" && (strings.Contains(text, "settlement") || strings.Contains(description, "paid"))
+}
+
+func looksLikeNonSharedTransfer(r row) bool {
+	text := strings.ToLower(r.description + " " + r.notes)
+	return strings.Contains(text, "deposit")
 }
 
 func convertToBase(amountPaise int64, currency string) int64 {

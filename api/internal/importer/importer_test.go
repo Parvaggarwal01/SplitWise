@@ -36,6 +36,7 @@ func TestParseAssignmentCSVDetectsExpectedAnomalies(t *testing.T) {
 	assertAnomaly(t, report.Anomalies, "missing_currency")
 	assertAnomaly(t, report.Anomalies, "ambiguous_date")
 	assertAnomaly(t, report.Anomalies, "zero_amount")
+	assertAnomaly(t, report.Anomalies, "non_shared_transfer")
 }
 
 func assertAnomaly(t *testing.T, anomalies []domain.ImportAnomaly, code string) {
@@ -64,4 +65,5 @@ Mar-14,Airport cab,rohan ,1100,INR,equal,Aisha;Rohan;Priya;Dev,,
 22-03-2026,Dinner order Swiggy,Priya,0,INR,equal,Aisha;Rohan;Priya;Meera,,counted twice earlier - fixing later
 04-05-2026,Deep cleaning service,Rohan,2500,INR,equal,Aisha;Rohan;Priya,,is this April 5 or May 4? format is a mess
 02-04-2026,Groceries BigBasket,Priya,2640,INR,equal,Aisha;Rohan;Priya;Meera,,oops Meera still in the group list
+08-04-2026,Sam deposit share,Sam,15000,INR,equal,Aisha,,Sam moving in! paid Aisha his deposit
 `

@@ -54,7 +54,7 @@ Blocking anomalies skip the row. Warning anomalies import with documented normal
 | 33 | Zero amount | Skip pending review |
 | 35 | Ambiguous date `04-05-2026` | Parse as DD-MM-YYYY, flag for approval |
 | 37 | Meera included after move-out | Flag membership violation for approval |
-| 40 | Sam deposit logged in expense sheet | Record as settlement |
+| 40 | Sam deposit logged in expense sheet | Treat as non-shared transfer and skip pending review |
 | 43 | `equal` split has share details | Trust split type, ignore details, flag |
 
 ## Database Schema

@@ -29,6 +29,16 @@ Options considered:
 
 Chosen: settlements. Repayments affect net balances but should not create shared participant shares.
 
+## Exclude deposits from shared balances
+
+Options considered:
+
+- Treat deposits as settlements
+- Treat deposits as shared expenses
+- Flag deposits as non-shared transfers
+
+Chosen: flag deposits as non-shared transfers and skip them pending review. Sam's deposit is a one-off transfer to Aisha, not a household expense that Meera or Kabir should settle through.
+
 ## Fixed exchange rate for assignment repeatability
 
 Options considered:
