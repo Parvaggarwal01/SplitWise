@@ -44,6 +44,8 @@ set +a
 npm run api:dev
 ```
 
+Login and register use the `users` table in Postgres. They are disabled until `DATABASE_URL` is set and migrations have been applied.
+
 Run the API:
 
 ```bash
@@ -73,7 +75,7 @@ psql "$DATABASE_URL" -f db/migrations/001_initial.sql
 psql "$DATABASE_URL" -f db/migrations/002_seed_assignment.sql
 ```
 
-The current API uses an in-memory store for local review while the schema is ready for Postgres persistence. The next implementation step is replacing `api/internal/store/memory.go` with a Postgres-backed store that writes imports, anomalies, expenses, shares, and settlements transactionally.
+Auth is backed by Postgres. Expense/import data still uses an in-memory store for local review while the schema is ready for persistence. The next implementation step is replacing `api/internal/store/memory.go` with a Postgres-backed store that writes imports, anomalies, expenses, shares, and settlements transactionally.
 
 ## Import Flow
 

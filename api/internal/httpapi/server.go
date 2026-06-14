@@ -6,24 +6,26 @@ import (
 	"net/http"
 	"strings"
 
+	"splitwise-assignment/api/internal/auth"
 	"splitwise-assignment/api/internal/importer"
 	"splitwise-assignment/api/internal/store"
 )
 
 type Server struct {
-	store *store.Memory
-	mux   *http.ServeMux
+	store     *store.Memory
+	authStore auth.Store
+	mux       *http.ServeMux
 }
 
-func New(memory *store.Memory) *Server {
-	server := &Server{store: memory, mux: http.NewServeMux()}
+func New(memory *store.Memory, authStore auth.Store) *Server {
+	server := &Server{store: memory, authStore: authStore, mux: http.NewServeMux()}
 	server.routes()
 	return server
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
+	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)
@@ -70,11 +72,12 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "email and password are required", http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{
-		"name":  "Demo Reviewer",
-		"email": payload.Email,
-		"token": "demo-session",
-	})
+	user, err := s.authStore.Login(r.Context(), payload.Email, payload.Password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	writeJSON(w, http.StatusOK, user)
 }
 
 func (s *Server) register(w http.ResponseWriter, r *http.Request) {
@@ -93,11 +96,12 @@ func (s *Server) register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "name, email and password are required", http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]string{
-		"name":  name,
-		"email": email,
-		"token": "demo-session",
-	})
+	user, err := s.authStore.Register(r.Context(), name, email, payload.Password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusCreated, user)
 }
 
 func (s *Server) reviewAnomaly(w http.ResponseWriter, r *http.Request) {

@@ -118,10 +118,6 @@ func emptyReport() domain.ImportReport {
 		Expenses:    []domain.Expense{},
 		Settlements: []domain.Settlement{},
 		Anomalies:   []domain.ImportAnomaly{},
-		Members: []domain.Member{
-			{ID: "aisha", Name: "Aisha", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-			{ID: "rohan", Name: "Rohan", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-			{ID: "priya", Name: "Priya", JoinedAt: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)},
-		},
+		Members:     []domain.Member{},
 	}
 }
