@@ -50,8 +50,7 @@ func simplify(lines []domain.BalanceLine) []domain.Debt {
 		if line.NetPaise < 0 {
 			line.NetPaise = -line.NetPaise
 			debtors = append(debtors, line)
-		}
-		if line.NetPaise > 0 {
+		} else if line.NetPaise > 0 {
 			creditors = append(creditors, line)
 		}
 	}
