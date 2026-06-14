@@ -416,7 +416,11 @@ func normalizeSplitType(value string) string {
 
 func looksLikeSettlement(r row) bool {
 	text := strings.ToLower(r.description + " " + r.notes)
-	return strings.Contains(text, "paid") || strings.Contains(text, "settlement") || strings.Contains(text, "deposit")
+	description := strings.ToLower(r.description)
+	if strings.Contains(description, "deposit") || strings.Contains(description, "paid") && strings.Contains(description, "back") {
+		return true
+	}
+	return normalizeSplitType(r.splitType) == "" && (strings.Contains(text, "settlement") || strings.Contains(description, "paid"))
 }
 
 func convertToBase(amountPaise int64, currency string) int64 {
