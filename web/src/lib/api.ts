@@ -1,14 +1,17 @@
 import type { BalanceSummary, Expense, ImportReport, Member } from './types';
 
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+const apiUrl = (path: string) => `${API_BASE}${path}`;
+
 const json = async <T>(url: string): Promise<T> => {
-  const response = await fetch(url);
+  const response = await fetch(apiUrl(url));
   if (!response.ok) throw new Error(await response.text());
   return response.json() as Promise<T>;
 };
 
 export const api = {
   login: async (email: string, password: string) => {
-    const response = await fetch('/api/login', {
+    const response = await fetch(apiUrl('/api/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -17,7 +20,7 @@ export const api = {
     return response.json() as Promise<{ name: string; email: string; token: string }>;
   },
   register: async (name: string, email: string, password: string) => {
-    const response = await fetch('/api/register', {
+    const response = await fetch(apiUrl('/api/register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
@@ -33,17 +36,17 @@ export const api = {
     const form = new FormData();
     form.append('file', file);
     form.append('usdRate', String(usdRate));
-    const response = await fetch('/api/imports', { method: 'POST', body: form });
+    const response = await fetch(apiUrl('/api/imports'), { method: 'POST', body: form });
     if (!response.ok) throw new Error(await response.text());
     return response.json() as Promise<ImportReport>;
   },
   clearImport: async () => {
-    const response = await fetch('/api/imports/latest', { method: 'DELETE' });
+    const response = await fetch(apiUrl('/api/imports/latest'), { method: 'DELETE' });
     if (!response.ok) throw new Error(await response.text());
     return response.json() as Promise<ImportReport>;
   },
   reviewAnomaly: async (rowNumber: number, code: string, decision: 'approve' | 'keep_skipped') => {
-    const response = await fetch('/api/imports/latest/anomalies', {
+    const response = await fetch(apiUrl('/api/imports/latest/anomalies'), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rowNumber, code, decision })
