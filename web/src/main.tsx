@@ -272,9 +272,9 @@ function App() {
 
 function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: string; token: string }) => void }) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [name, setName] = useState('Aisha');
-  const [email, setEmail] = useState('aisha@example.com');
-  const [password, setPassword] = useState('demo123');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   return (
@@ -324,16 +324,16 @@ function LoginScreen({ onLogin }: { onLogin: (user: { name: string; email: strin
         {mode === 'register' && (
           <label>
             Name
-            <input value={name} onChange={(event) => setName(event.target.value)} type="text" />
+            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" type="text" />
           </label>
         )}
         <label>
           Email
-          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
+          <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" type="email" />
         </label>
         <label>
           Password
-          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" />
+          <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter password" type="password" />
         </label>
         {error && <div className="error">{error}</div>}
         <button data-auth-action={mode} type="submit">{mode === 'login' ? 'Continue' : 'Create account'}</button>
