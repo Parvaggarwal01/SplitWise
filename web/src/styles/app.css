@@ -183,6 +183,7 @@ h2 {
 }
 
 .upload,
+.downloadButton,
 .clearButton {
   align-items: center;
   border: 0;
@@ -193,6 +194,7 @@ h2 {
   gap: 8px;
   min-height: 42px;
   padding: 0 14px;
+  text-decoration: none;
 }
 
 .upload {
@@ -204,6 +206,11 @@ h2 {
   background: #fff;
   border: 1px solid #d8ddd4;
   color: #39454d;
+}
+
+.downloadButton {
+  background: #173f5f;
+  color: #fff;
 }
 
 .clearButton:hover {

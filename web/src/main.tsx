@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AlertTriangle, ArrowRight, CheckCircle2, Database, FileUp, LogOut, Trash2, UsersRound } from 'lucide-react';
+import { AlertTriangle, ArrowDownToLine, ArrowRight, CheckCircle2, Database, FileUp, LogOut, Trash2, UsersRound } from 'lucide-react';
 import { api, labelize, money, shortDate } from './lib/api';
 import type { BalanceSummary, Expense, ImportReport, Member } from './lib/types';
 import './styles/app.css';
@@ -104,6 +104,10 @@ function App() {
               }}
             />
           </label>
+          <a className="downloadButton" href={api.importReportUrl()} download="import-report.pdf">
+            <ArrowDownToLine size={18} />
+            Download report
+          </a>
           <button
             className="clearButton"
             type="button"

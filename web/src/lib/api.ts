@@ -53,7 +53,8 @@ export const api = {
     });
     if (!response.ok) throw new Error(await response.text());
     return response.json() as Promise<ImportReport>;
-  }
+  },
+  importReportUrl: () => apiUrl('/api/imports/latest/report.pdf')
 };
 
 export const money = (paise: number, currency = 'INR') =>
