@@ -7,18 +7,21 @@ Implemented:
 - CSV import with anomaly reporting
 - Equal, unequal, share, and percentage split parsing
 - USD to INR conversion with user-selected import rate
-- Membership timeline for Aisha, Rohan, Priya, Meera, Dev, Sam, and Kabir
+- Membership timeline derived from the uploaded CSV, not hardcoded names
 - Group balance summary and simplified settlement suggestions
 - Settlement/payment detection
 - React UI for upload, balances, anomaly review, members, and expense trace
+- Simple login/register backed by the Postgres `users` table
+- Manual anomaly review controls that mark approval-required anomalies as reviewed
 - Neon-compatible relational schema
+- Azure App Service backend deployment workflow
+- Vercel-ready frontend API configuration
 
 Not completed yet:
 
-- Real login/session handling
-- Postgres persistence wired into the API
-- User approval workflow that mutates pending anomaly decisions
-- Deployed public URL
+- Strong production auth/session management
+- Postgres persistence for imports, expenses, settlements, anomaly review, and balances
+- Review actions that recalculate balances by applying skipped duplicate/zero rows
 
 ## Import Policies
 
@@ -29,6 +32,10 @@ Dates are parsed as `DD-MM-YYYY`. `Mar-14` is parsed as `14 March 2026` because 
 Duplicate-looking expenses are not silently merged. The first row is imported and the later row is skipped pending review.
 
 Settlements are recorded separately from expenses and do not create participant shares.
+
+Deposits are treated as non-shared transfers and skipped pending review. The Sam deposit row is not counted as a shared settlement because it is a one-off transfer to Aisha, not a group expense.
+
+Members are derived from CSV names in `paid_by`, `split_with`, and split details. The first valid appearance date is used as the displayed join date. Visitor-like notes mark a person as a visitor. Moving-out notes are used as timeline hints when detectable.
 
 Blocking anomalies skip the row. Warning anomalies import with documented normalization. Approval-required anomalies either import with visible review status or skip until approved, depending on risk.
 
@@ -76,3 +83,5 @@ Core tables:
 - `exchange_rates`: conversion policy and rates
 
 The schema deliberately separates `people` from `users`, because Dev and Kabir can appear in expenses without having login accounts.
+
+Current runtime persistence note: auth uses the `users` table, but the imported expense report is held in memory. A server restart clears uploaded CSV data until the CSV is imported again.
