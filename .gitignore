@@ -5,3 +5,6 @@ web/tsconfig.tsbuildinfo
 *.log
 .env
 sample-data/*.csv
+api/app.zip
+api/server
+api/startup.sh
